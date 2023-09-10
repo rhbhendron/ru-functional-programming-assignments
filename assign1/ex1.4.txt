@@ -1,0 +1,9 @@
+a) double 5 =
+   definition of double        = incr (incr 0)
+   definition of incr          = 5 + (incr 0)
+   definition of incr          = 5 + (5 + 0)
+   definition of +             = 5 + 5
+   definition of +             = 10
+
+b) My reduction is in applicative order evaluation, as I reduced the argument in 5 + (incr 0)
+   to 5 + (5 + 0), rather than first expanding the function definition

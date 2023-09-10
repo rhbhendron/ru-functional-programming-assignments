@@ -10,38 +10,59 @@ elena, peter, pol :: Person
 elena  =  ("Elena",  33,  "Functional Programming")
 peter  =  ("Peter",  57,  "Imperative Programming")
 pol    =  ("Pol",    36,  "Object Oriented Programming")
+--1.5.1
+person   =  ("Frits",   20,  "Course")
 
 students :: [Person]
-students = [elena, peter, pol]
+students = [elena, peter, pol, person]
 
 age :: Person -> Age
 age (_, n, _)  =  n
 
--- name             :: Person -> Name
--- favouriteCourse  :: Person -> FavouriteCourse
--- showPerson       :: Person -> String
--- twins            :: Person -> Person -> Bool
--- increaseAge      :: Person -> Person
+--1.5.2
+name :: Person -> Name
+name (n, _, _)  =  n
 
--- first develop the expressions in GHCi, then replace the TODO's below with them
+favouriteCourse :: Person -> FavouriteCourse
+favouriteCourse (_, _, n)  =  n
+
+--1.5.3
+showPerson :: Person -> String
+showPerson p = "Age: " ++ show (age p) ++ ", name: " ++ name p ++ ", favourite course: " ++ favouriteCourse p
+
+--1.5.4
+twins :: Person -> Person -> Bool
+twins x y = age x == age y
+
+--1.5.5
+increaseAge :: Person -> Person
+increaseAge (n, a, c) = (n, a+1, c)
+
+--1.5.6
 query1 :: [Person]
-query1 = _TODO "increment the age of all students by two"
+--"increment the age of all students by two"
+query1 = map increaseAge (map increaseAge students)
 
 query2 :: [Person]
-query2 = _TODO "promote all of the students"
+--"promote all of the students"
+query2 = map promote students 
+
+promote :: Person -> Person
+promote (n, a, c) = ("dr. " ++ n, a, c)
 
 query3 :: [Person]
-query3 = _TODO "all students named Frits"
+--"all students named Frits"
+query3 = let fritsFilter p = name p == "Frits" in filter fritsFilter students
 
 query4 :: [Person]
-query4 = _TODO "all students who are in their twenties"
+--"all students who are in their twenties"
+query4 = let ageFilter p = age p >= 20 && age p < 30 in filter ageFilter students
 
 query5 :: Age
-query5 = _TODO "the average age of all students"
+-- "the average age of all students"
+query5 = sum (map age students) `div` (fromIntegral (length students))
 
 query6 :: [Person]
-query6 = _TODO "promote the students whose favourite course is Functional Programming"
-
--- if you have removed all TODO's, remove these lines
-_TODO :: String -> a
-_TODO msg = error ("TODO: " ++ msg)
+-- "promote the students whose favourite course is Functional Programming"
+query6 = map promoteFp students where
+  promoteFp s = if favouriteCourse s == "Functional Programming" then promote s else s
