@@ -5,30 +5,78 @@ data Tree a = Leaf | Node a (Tree a) (Tree a)
 
 {----------- exercise 4.3 -------------}
 
---leaves :: Tree a -> Int
---nodes  :: Tree a -> Int
---height :: Tree a -> Int
---elems  :: Tree a -> [a]
---isSearchTree :: (Ord a) => Tree a -> Bool
+tree :: Tree Char
+tree = Node 'c' (Node 'a' Leaf (Node 'b' Leaf Leaf)) (Node 'f' (Node 'd' Leaf Leaf) (Node 'g' Leaf Leaf))
+
+leaves :: Tree a -> Int
+leaves Leaf = 1
+leaves (Node a t1 t2) = leaves t1 + leaves t2
+
+nodes  :: Tree a -> Int
+nodes Leaf = 0
+nodes (Node a t1 t2) = 1 + nodes t1 + nodes t2
+
+height :: Tree a -> Int
+height Leaf = 0
+height (Node a t1 t2) = 1 + max (height t1) (height t2)
+
+elems  :: Tree a -> [a]
+elems Leaf = []
+elems (Node a t1 t2) = [a] ++ elems t1 ++ elems t2
+
+isSearchTree :: (Ord a) => Tree a -> Bool
+isSearchTree Leaf = True
+isSearchTree (Node a Leaf Leaf) = True
+isSearchTree (Node a Leaf (Node b t1 t2)) = a < b && isSearchTree t1 && isSearchTree t2
+isSearchTree (Node a (Node b t1 t2) Leaf) = a > b && isSearchTree t1 && isSearchTree t2
+isSearchTree (Node a (Node b t11 t12) (Node c t21 t22)) = and $ [a>b,a<c] ++ (map isSearchTree [(Node b t11 t12), (Node c t21 t22)])
 
 {----------- exercise 4.4 -------------}
 
---member :: (Ord a) => a -> Tree a -> Bool
---insert :: (Ord a) => a -> Tree a -> Tree a
---delete :: (Ord a) => a -> Tree a -> Tree a
---fromList :: (Ord a) => [a] -> Tree a
+member :: (Ord a) => a -> Tree a -> Bool
+member x Leaf = False
+member x (Node y t1 t2)
+  | x < y = member x t1
+  | x > y = member x t2
+  | otherwise = True
 
+insert :: (Ord a) => a -> Tree a -> Tree a
+insert x Leaf = Node x Leaf Leaf
+insert x (Node a t1 t2)
+  | x < a = Node a (insert x t1) t2
+  | x > a = Node a t1 (insert x t2)
+  | otherwise = Node a t1 t2
+
+delete :: (Ord a) => a -> Tree a -> Tree a
+delete x (Node a Leaf Leaf) = if x == a then Leaf else Node a Leaf Leaf
+delete x (Node a t1 Leaf) = if x == a then t1 else Node a t1 Leaf
+delete x (Node a Leaf t1) = if x == a then t1 else Node a Leaf t1
+delete x (Node a t1 t2)
+  | x < a = Node a (delete x t1) t2
+  | x > a = Node a t1 (delete x t2)
+  | otherwise = Node inorderSuccessor t1 (delete inorderSuccessor t2) where
+      inorderSuccessor = (minimum . elems) t2
 {----------- exercise 4.5 -------------}
 
---inOrder :: Tree a -> [a]
---fromAscList :: [a] -> Tree a
---breadthFirst :: Tree a -> [a]
+inOrder :: Tree a -> [a]
+inOrder Leaf = []
+inOrder (Node a Leaf Leaf) = [a]
+inOrder (Node a t1 t2) = inOrder t1 ++ [a] ++ inOrder t2
+
+
+fromAscList :: (Ord a) => [a] -> Tree a
+fromAscList [] = Leaf
+fromAscList xs = Node n (fromAscList start) (fromAscList end) where
+  (start,(n:end)) = splitAt (length xs `div` 2) xs
+
+breadthFirst :: Tree a -> [a]
+breadthFirst Leaf = []
 
 {- BONUS: a tree pretty printer; the recursive structure of this function
  - is prety simple, but it is a fiddly function to write if you want it to
  - produce an actually nice tree. -}
 
-{-
+
 layout :: (Show a) => Tree a -> String
 layout tree = go "" ("","","") tree
   where
@@ -52,4 +100,3 @@ layout tree = go "" ("","","") tree
 
 putTree :: (Show a) => Tree a -> IO()
 putTree tree = putStr (layout tree)
--}

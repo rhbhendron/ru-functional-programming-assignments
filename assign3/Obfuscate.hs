@@ -11,16 +11,6 @@ cambridge = unwords . shuffle . words
 isSpaceOrPunc :: Char -> Bool
 isSpaceOrPunc c = elem c ['.',',',' ']
 
-myWords :: String -> [String]
-myWords s = case dropWhile isSpaceOrPunc s of
-              "" -> []
-              s' -> w : myWords s''
-                        where (w, s'') = break isSpaceOrPunc s'
-
--- scramble :: String -> String
--- scramble "" = ""
--- scramble s = [head s] ++ {- stuff-} ++ [last s]
-
 permLen :: [a] -> Int
 permLen x = (length $ permutations x) - 1
 
@@ -34,7 +24,6 @@ scrambleInner g s = (permutations s !! index, gen) where
 middleList :: [a] -> [a]
 middleList = init . tail
 
--- scramble :: String -> String
 scramble :: String -> StdGen -> (String, StdGen)
 scramble [x] g = ([x], snd $ randIndex g [x])
 scramble [x,y] g = ([x,y], snd $ randIndex g [x,y])
