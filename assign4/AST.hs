@@ -11,7 +11,9 @@ infixl 6 :-:
 infixl 7 :/:
 
 maybeFunctions :: (a -> b -> c) -> Maybe a -> Maybe b -> Maybe c
-maybeFunctions f x y = pure f <*> x <*> y
+maybeFunctions f Nothing _ = Nothing
+maybeFunctions f _ Nothing = Nothing
+maybeFunctions f (Just x) (Just y) = Just (f x y)
 
 eval :: (Fractional a, Eq a) => Expr -> a -> Maybe a
 eval (Lit x) y = Just $ fromIntegral x
