@@ -49,13 +49,13 @@ insert x (Node a t1 t2)
 
 delete :: (Ord a) => a -> Tree a -> Tree a
 delete x (Node a Leaf Leaf) = if x == a then Leaf else Node a Leaf Leaf
-delete x (Node a t1 Leaf) = if x == a then t1 else Node a t1 Leaf
-delete x (Node a Leaf t1) = if x == a then t1 else Node a Leaf t1
+delete x (Node a t1 Leaf) = if x == a then t1 else Node a (delete x t1) Leaf
+delete x (Node a Leaf t1) = if x == a then t1 else Node a Leaf (delete x t1)
 delete x (Node a t1 t2)
   | x < a = Node a (delete x t1) t2
   | x > a = Node a t1 (delete x t2)
-  | otherwise = Node inorderSuccessor t1 (delete inorderSuccessor t2) where
-      inorderSuccessor = (minimum . elems) t2
+  | otherwise = Node inorderSuccessor (delete inorderSuccessor t1) t2 where
+      inorderSuccessor = (maximum . elems) t1
 {----------- exercise 4.5 -------------}
 
 inOrder :: Tree a -> [a]
@@ -69,8 +69,13 @@ fromAscList [] = Leaf
 fromAscList xs = Node n (fromAscList start) (fromAscList end) where
   (start,(n:end)) = splitAt (length xs `div` 2) xs
 
+bfs :: [Tree a] -> [a]
+bfs [] = []
+bfs (Leaf : xs) = bfs xs
+bfs ((Node a t1 t2) : xs) = a : bfs (xs ++ [t1, t2])
+
 breadthFirst :: Tree a -> [a]
-breadthFirst Leaf = []
+breadthFirst t = bfs [t]
 
 {- BONUS: a tree pretty printer; the recursive structure of this function
  - is prety simple, but it is a fiddly function to write if you want it to
@@ -92,11 +97,11 @@ layout tree = go "" ("","","") tree
       ++ (pre ++ preN) ++ pad k ++ junct ++
       go (pre ++ preL) (v_bar,hfill,lbend) lt
 
-  junct = "┤\n"         -- change to "+\n" if no Unicode
+  junct = "+\n"         -- change to "+\n" if no Unicode
   hfill = fill ++ "  "
-  rbend = fill ++ "╭─"  -- change to "/-" if no Unicode
-  v_bar = fill ++ "│ "  -- change to "| " if no Unicode
-  lbend = fill ++ "╰─"  -- change to "\\-" if no Unicode
+  rbend = fill ++ "/-"  -- change to "/-" if no Unicode
+  v_bar = fill ++ "| "  -- change to "| " if no Unicode
+  lbend = fill ++ "\\-"  -- change to "\\-" if no Unicode
 
 putTree :: (Show a) => Tree a -> IO()
 putTree tree = putStr (layout tree)
