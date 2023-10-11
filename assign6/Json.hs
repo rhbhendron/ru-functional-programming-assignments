@@ -74,20 +74,35 @@ instance (ToJson a, ToJson b) => ToJson (a, b) where
 instance ToJson Person where
   toJson (Person { name = n, age = a, knowsFP = fp }) = JSObject [("name", toJson n), ("age", toJson a), ("knowsFP", toJson fp)]
 
-
 -- Optional extra: instance ToJson Int
 
-
 -- Converting from Json back to Haskell values
+class FromJson a where
+  fromJson :: Json -> Maybe a
 
--- class FromJson
--- instance FromJson ()
--- instance FromJson Bool
--- instance FromJson Double
--- instance FromJson String
--- instance .. => FromJson (a,b)
--- instance FromJson Person
+instance FromJson () where
+  fromJson JSNull = Just ()
+  fromJson _      = Nothing
+
+instance FromJson Bool where
+  fromJson JSTrue  = Just True
+  fromJson JSFalse = Just False
+  fromJson _       = Nothing
+
+instance FromJson Double where
+  fromJson (JSNumber n) = Just n
+  fromJson _            = Nothing
+
+instance FromJson String where
+  fromJson (JSString s) = Just s
+  fromJson _            = Nothing
+
+-- instance FromJson => FromJson (a,b) where
+
+-- instance FromJson Person where
+
 -- Optional extra: instance .. => FromJson [a]
+
 -- Optional extra: instance FromJson Int
 
 
