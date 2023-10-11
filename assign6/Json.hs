@@ -64,10 +64,13 @@ instance ToJson Double where
 instance ToJson String where
   toJson = JSString
 
--- TODO: need to add custom type class here
--- instance .. => ToJson [a] where
+instance ToJson a => ToJson [a] where
+    toJson [] = JSList []  -- Represent an empty list as an empty JSON array
+    toJson (x:xs) = JSList (toJson x : map toJson xs)
 
--- instance .. => ToJson (a,b) where
+instance (ToJson a, ToJson b) => ToJson (a, b) where
+    toJson (x, y) = JSObject [("first", toJson x), ("second", toJson y)]
+
 -- instance ToJson Person where
 -- Optional extra: instance ToJson Int
 
