@@ -4,7 +4,6 @@
 import Data.List
 
 -- Json values
-
 data Json
   = JSNull                      -- null
   | JSFalse                     -- false
@@ -44,21 +43,32 @@ instance Show Json where
                            . showString "\n" . showIndent i
 
 -- Person data type
-
 data Person = Person { name :: String, age :: Double, knowsFP :: Bool }
   deriving (Eq)
 
-
 -- Converting Haskell values to Json
+class ToJson a where
+    toJson :: a -> Json
 
--- class ToJson ...
--- instance ToJson ()
--- instance ToJson Bool
--- instance ToJson Double
--- instance ToJson String
--- instance .. => ToJson [a]
--- instance .. => ToJson (a,b)
--- instance ToJson Person
+instance ToJson () where
+  toJson () = JSNull
+
+instance ToJson Bool where
+  toJson :: Bool -> Json
+  toJson True = JSTrue
+  toJson False = JSFalse
+
+instance ToJson Double where
+  toJson = JSNumber
+
+instance ToJson String where
+  toJson = JSString
+
+-- TODO: need to add custom type class here
+-- instance .. => ToJson [a] where
+
+-- instance .. => ToJson (a,b) where
+-- instance ToJson Person where
 -- Optional extra: instance ToJson Int
 
 
