@@ -74,20 +74,54 @@ instance (ToJson a) => ToJson [a] where
 instance (ToJson a, ToJson b) => ToJson (a,b) where
   toJson (x,y) = JSList [toJson x, toJson y]
 
-instance ToJson Person
+instance ToJson Person where
+  toJson (Person name age knowsFP) = JSObject [("name",toJson name), ("age",toJson age), ("knowsFP", toJson knowsFP)]
 
 -- Optional extra: instance ToJson Int
 
 
 -- Converting from Json back to Haskell values
 
--- class FromJson
--- instance FromJson ()
--- instance FromJson Bool
--- instance FromJson Double
--- instance FromJson String
--- instance .. => FromJson (a,b)
--- instance FromJson Person
+class FromJson a where
+  fromJson :: Json -> Maybe a
+
+instance FromJson () where
+  fromJson :: Json -> Maybe ()
+  fromJson JSNull  = Just ()
+  fromJson _ = Nothing
+
+instance FromJson Bool where
+  fromJson :: Json -> Maybe Bool
+  fromJson JSTrue = Just True
+  fromJson JSFalse = Just False
+  fromJson _ = Nothing
+
+instance FromJson Double where
+  fromJson :: Json -> Maybe Double
+  fromJson (JSNumber x) = Just x
+  fromJson _ = Nothing
+
+instance FromJson String where
+  fromJson :: Json -> Maybe String
+  fromJson (JSString x) = Just x
+  fromJson _ = Nothing
+
+instance (FromJson a, FromJson b) => FromJson (a,b) where
+  fromJson (JSList [a,b]) = do
+        maybeA <- fromJson a
+        maybeB <- fromJson b
+        return (maybeA,maybeB)
+  fromJson _ = Nothing
+
+instance FromJson Person where
+  fromJson (JSObject [(n,name),(a,age),(kF,knowsFP)]) = do
+    mName <- fromJson name
+    mAge <- fromJson age
+    mKnowsFP <- fromJson knowsFP
+    return (Person mName mAge mKnowsFP)
+
+  fromJson _ = Nothing
+
 -- Optional extra: instance .. => FromJson [a]
 -- Optional extra: instance FromJson Int
 
@@ -118,13 +152,11 @@ testToJson = toJson person1 == json1 &&
              toJson tuple1 == json4
 -}
 
-{-
-testFromJson :: Bool
-testFromJson = Just person1 == fromJson json1 && 
-               Just person2 == fromJson json2 &&
-               Just tuple1 == fromJson json4 &&
-               fromJson json1 == (Nothing :: Maybe String) &&
-               fromJson json1 == (Nothing :: Maybe Double) &&
-               fromJson json1 == (Nothing :: Maybe Bool)
--}
 
+-- testFromJson :: Bool
+-- testFromJson = Just person1 == fromJson json1 &&
+--                Just person2 == fromJson json2 &&
+--                Just tuple1 == fromJson json4 &&
+--                fromJson json1 == (Nothing :: Maybe String) &&
+--                fromJson json1 == (Nothing :: Maybe Double) &&
+--                fromJson json1 == (Nothing :: Maybe Bool)
