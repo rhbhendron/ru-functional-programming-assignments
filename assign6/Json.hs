@@ -97,7 +97,7 @@ instance FromJson String where
   fromJson (JSString s) = Just s
   fromJson _            = Nothing
 
--- instance FromJson => FromJson (a,b) where
+-- instance ... => FromJson (a,b) where
 
 -- instance FromJson Person where
 
