@@ -97,17 +97,27 @@ instance FromJson String where
   fromJson (JSString s) = Just s
   fromJson _            = Nothing
 
--- instance ... => FromJson (a,b) where
+-- NOTE: used <- to handle Maybe result from fromJson, if result is Nothing, entire do block will result in Nothing
+instance (FromJson a, FromJson b) => FromJson (a,b) where
+  fromJson (JSList [x, y]) = do
+    maybeFirst  <- fromJson x
+    maybeSecond <- fromJson y
+    Just (maybeFirst, maybeSecond)
+  fromJson _ = Nothing
 
--- instance FromJson Person where
+instance FromJson Person where
+  fromJson (JSObject [("name", n), ("age", a), ("knowsFP", fp)]) = do
+    maybeName <- fromJson n
+    maybeAge  <- fromJson a
+    maybeFP   <- fromJson fp
+    Just Person {name = maybeName, age = maybeAge, knowsFP = maybeFP}
+  fromJson _ = Nothing
 
 -- Optional extra: instance .. => FromJson [a]
 
 -- Optional extra: instance FromJson Int
 
-
 -- Test cases
-
 person1, person2 :: Person
 person1 = Person {name="Twan", age=38, knowsFP=True}
 person2 = Person {name="Wim-Lex", age=56, knowsFP=False}
@@ -131,7 +141,6 @@ testToJson = toJson person1 == json1 &&
              toJson persons == json3 &&
              toJson tuple1 == json4
 
-{-
 testFromJson :: Bool
 testFromJson = Just person1 == fromJson json1 && 
                Just person2 == fromJson json2 &&
@@ -139,5 +148,3 @@ testFromJson = Just person1 == fromJson json1 &&
                fromJson json1 == (Nothing :: Maybe String) &&
                fromJson json1 == (Nothing :: Maybe Double) &&
                fromJson json1 == (Nothing :: Maybe Bool)
--}
-
