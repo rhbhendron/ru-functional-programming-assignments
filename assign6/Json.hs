@@ -69,9 +69,12 @@ instance ToJson a => ToJson [a] where
     toJson (x:xs) = JSList (toJson x : map toJson xs)
 
 instance (ToJson a, ToJson b) => ToJson (a, b) where
-    toJson (x, y) = JSObject [("first", toJson x), ("second", toJson y)]
+    toJson (x, y) = JSList [toJson x, toJson y]
 
--- instance ToJson Person where
+instance ToJson Person where
+  toJson (Person { name = n, age = a, knowsFP = fp }) = JSObject [("name", toJson n), ("age", toJson a), ("knowsFP", toJson fp)]
+
+
 -- Optional extra: instance ToJson Int
 
 
@@ -106,13 +109,12 @@ json2 = JSObject [("name",JSString "Wim-Lex"),("age",JSNumber 56.0),("knowsFP",J
 json3 = JSList [json1, json2]
 json4 = JSList [JSNull, JSList [JSTrue, JSFalse]]
 
-{-
+
 testToJson :: Bool
 testToJson = toJson person1 == json1 && 
              toJson person2 == json2 &&
              toJson persons == json3 &&
              toJson tuple1 == json4
--}
 
 {-
 testFromJson :: Bool
