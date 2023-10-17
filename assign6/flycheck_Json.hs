@@ -152,7 +152,6 @@ testToJson = toJson person1 == json1 &&
              toJson tuple1 == json4
 -}
 
-
 -- testFromJson :: Bool
 -- testFromJson = Just person1 == fromJson json1 &&
 --                Just person2 == fromJson json2 &&

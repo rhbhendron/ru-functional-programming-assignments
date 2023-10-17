@@ -32,6 +32,9 @@ instance Rankable Bool where
 assoc :: ((k1,k2),a) -> (k1, (k2,a))
 assoc ((x1,x2),x3) = (x1,(x2,x3))
 
+applyToFst :: (a -> c) -> (a,b) -> (c,b)
+applyToFst f (x,y) = (f x , y)
+
 instance (Rankable key1, Rankable key2) => Rankable (key1,key2) where
   rank :: (Rankable key1, Rankable key2) => [((key1,key2),a)] -> [[a]]
   rank = concatMap rank . rank . map assoc
@@ -42,14 +45,19 @@ bucketMaybes = foldr bucket [[],[]] where
                          Just y -> [xs,(x:ys)]
                          Nothing -> [(x:xs),ys]
 
-instance (Rankable key , Ord key) => Rankable (Maybe key) where
-  rank xs = let
-    justs = map (\(x,y) -> (fromJust x, y)) (filter (isJust . fst) xs)
-    nones = map snd (filter (isNothing . fst) xs)
-    in nones : rank justs
+instance (Rankable key) => Rankable (Maybe key) where
+  rank xs = nones : rank justs where
+    nones = (map snd . head) bucket
+    justs = (map (applyToFst fromJust) . last) bucket
+    bucket = bucketMaybes xs
 
--- instance (Rankable key) => Rankable [key] where
---   rank :: (Rankable key) => [([key], a)] -> [[a]]
+
+instance (Rankable key) => Rankable [key] where
+  rank :: (Rankable key) => [([key], a)] -> [[a]]
+  rank  = filter (not . null) . rank . map (applyToFst uncons)
+
+rankWithKey :: (Rankable key) => [(key,a)] -> [[(key,a)]]
+rankWithKey = rank . map (\(x,y) -> (x,(x,y)))
 
 ----------------------------------------------------------------------------------------------------
 -- some test inputs (it would be reasonably for "rank" and "genericRank" to produce the same output)
