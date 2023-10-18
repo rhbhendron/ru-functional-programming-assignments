@@ -8,10 +8,6 @@ data Btree a = Tip a | Bin (Btree a) (Btree a)
 data Bit = O | I
   deriving (Eq,Ord,Show)
 
-mapTree :: (a -> b) -> Btree a -> Btree b
-mapTree f (Tip a) = Tip (f a)
-mapTree f (Bin l r) = Bin (mapTree f l) (mapTree f r)
-
 -----------------------------------------------------------------------
 
 frequencies :: (Ord a) => [a] -> [(a,Int)]
@@ -19,29 +15,17 @@ frequencies = map (\x -> (head x, length x)). group . sort
 
 -----------------------------------------------------------------------
 
-treeList :: [(a,Int)] -> [Btree (a,Int)]
-treeList = map Tip . sortOn snd
+frequencyTreeList :: [(a, Int)] -> [(Btree a, Int)]
+frequencyTreeList = sortOn snd. map (\(x,y) -> (Tip x, y))
 
-{-
-  getFreq :: Btree (a,Int) -> Int
-  getFreq (Tip x) = snd x
-  getFreq (Btree l r) = (getFreq l) + (getFreq r)
--}
-{-
-  func (x:xs) = mapTree
-  func (x:y:xs) = insertBy (\x y -> compare (getFreq x) (getFreq y)) xs BTree x y
--}
-
-treeFreq :: Btree (a,Int) -> Int
-treeFreq (Tip x) = snd x
-treeFreq (Bin l r) = (treeFreq l) + (treeFreq r)
-
-prelimHuffman :: [Btree (a,Int)] -> Btree (a,Int)
-prelimHuffman [x] = x
-prelimHuffman (x:y:xs) = prelimHuffman (insertBy (\x y -> compare (treeFreq x) (treeFreq y)) (Bin x y) xs)
+prelimHuffman :: [(Btree a, Int)] -> Btree a
+prelimHuffman [(x,y)] = x
+prelimHuffman ((l,f1):(r,f2):xs) = prelimHuffman $ insertBy com tup xs where
+  com (_,x) (_,y) = compare x y
+  tup = ((Bin l r), f1 + f2)
 
 huffman :: [(a,Int)] -> Btree a
-huffman = mapTree fst . prelimHuffman . treeList
+huffman = prelimHuffman . frequencyTreeList
 
 -----------------------------------------------------------------------
 
