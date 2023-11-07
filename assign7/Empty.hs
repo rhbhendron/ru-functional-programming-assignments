@@ -4,7 +4,7 @@ module Empty where
 
 isEmpty0 list = length list == 0
 
-isEmpty1 list = list == []
+-- isEmpty1 list = list == []
 
 isEmpty2 list = null list
 

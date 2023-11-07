@@ -1,6 +1,9 @@
 module Huffman where
 
 import Data.List
+import Data.Ord
+import qualified Data.Map as M
+import Data.Tuple
 
 data Btree a = Tip a | Bin (Btree a) (Btree a)
   deriving Eq -- Show is done manually
@@ -20,8 +23,7 @@ frequencyTreeList = sortOn snd. map (\(x,y) -> (Tip x, y))
 
 prelimHuffman :: [(Btree a, Int)] -> Btree a
 prelimHuffman [(x,y)] = x
-prelimHuffman ((l,f1):(r,f2):xs) = prelimHuffman $ insertBy com tup xs where
-  com (_,x) (_,y) = compare x y
+prelimHuffman ((l,f1):(r,f2):xs) = prelimHuffman $ insertBy (comparing snd) tup xs where
   tup = ((Bin l r), f1 + f2)
 
 huffman :: [(a,Int)] -> Btree a
@@ -29,11 +31,22 @@ huffman = prelimHuffman . frequencyTreeList
 
 -----------------------------------------------------------------------
 
---encode :: (Ord a) => Btree a -> [a] -> [Bit]
+code :: Ord a => Btree a -> M.Map a [Bit]
+code (Tip x) = M.singleton x []
+code (Bin l r) = M.union (M.map (\x -> O : x) (code l)) (M.map (\x -> I : x) (code r))
+
+encode :: (Ord a) => Btree a -> [a] -> [Bit]
+encode tree xs = concatMap getValue xs where
+  getValue x = maybe [O] id (M.lookup x bitMap)
+  bitMap = code tree
 
 -----------------------------------------------------------------------
 
---decode :: (Ord a) => Btree a -> [Bit] -> [a]
+decode :: (Ord a) => Btree a -> [Bit] -> [a]
+decode tree = dcd tree where
+  dcd (Tip a) [] = [a]
+  dcd (Tip a) xs = a : dcd tree xs
+  dcd (Bin l r) (x : xs) = dcd (if x == O then l else r) xs
 
 -----------------------------------------------------------------------
 
