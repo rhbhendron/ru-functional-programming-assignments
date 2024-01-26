@@ -1,19 +1,22 @@
 module LinkedList where
 
 import Data.IORef
+import Control.Monad
 
 type ListRef elem = IORef (List elem)
 
 data List elem = Nil | Cons elem (ListRef elem)
 
 nil :: IO (ListRef elem)
-nil = return (Nil)
+nil = newIORef (Nil)
 
 cons :: elem -> ListRef elem -> IO (ListRef elem)
-cons x xs = error "not Implemented"
+cons x xs = do
+  list <- xs
+  pure (Cons x xs)
 
-fromList :: [elem] -> IO (ListRef elem)
-fromList = error "fromList: not yet implemented"
+-- fromList :: [elem] -> IO (ListRef elem)
+-- fromList xs = foldM cons nil xs
 
 toList :: ListRef elem -> IO [elem]
 toList = error "toList: not yet implemented"

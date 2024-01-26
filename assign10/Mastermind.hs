@@ -2,14 +2,15 @@ module Main where
 
 import Data.List
 import Data.Char
+import Control.Monad
 import Data.Maybe
--- import System.Random
+import System.Random
 import System.IO
 
 {---------------------- functional parts -------------------------------}
 
 data Colour = White | Silver | Green | Red | Orange | Pink | Yellow | Blue
-  deriving (Eq,Ord)
+  deriving (Enum,Eq,Ord,Show)
 
 score :: (Ord a) => (a,a) -> Int -> Int
 score (a,b) x
@@ -35,22 +36,51 @@ test3 = scoreAttempt [1,2,1,3,3 :: Int] [4,1,5,6,7 :: Int] == (0,1)
 test4 = scoreAttempt [4,1,5,6,7 :: Int] [1,2,1,3,3 :: Int] == (0,1)
 test5 = scoreAttempt [4,1,5,1,7 :: Int] [1,2,1,3,3 :: Int] == (0,2)
 
+
+getColour :: String -> Colour
+getColour (x:xs)
+  | toUpper x == 'R' = Red
+  | toUpper x == 'B' = Blue
+  | toUpper x == 'S' = Silver
+  | toUpper x == 'G' = Green
+  | toUpper x == 'O' = Orange
+  | toUpper x == 'P' = Pink
+  | toUpper x == 'Y' = Yellow
+  | toUpper x == 'W' = White
+
+colString :: [Colour] -> String
+colString = unwords . map (++ ","). map show
+
 {---------------------- IO parts -------------------------------}
 
 -- only here for example; you can remove these from your final file
--- roll_d6 :: IO Int
--- roll_d6 = randomRIO (1,6)
 
--- roll_2d6 :: IO Int
--- roll_2d6 = do
---   a <- roll_d6
---   b <- roll_d6
---   pure (a + b)
+getCode :: Int -> IO [Colour]
+getCode 0 = pure []
+getCode n = do
+  r <- randomRIO (0,7)
+  let col = toEnum r :: Colour
+  ys <- getCode (n - 1)
+  pure (col : ys)
 
---getCode :: ??? -> IO [Colour]
-
---playGame :: ??? -> IO ()
+newPlayGame :: Int -> [Colour] -> IO ()
+newPlayGame tries code = do
+  putStrLn ("Please make a guess, you have " ++ show tries ++ " tries remaining")
+  strGuess <- getLine
+  let guess = (map getColour . words) strGuess
+  let (exScore, loScore) = scoreAttempt code guess
+  if exScore == length code
+    then putStr "Correct"
+    else do
+      putStrLn (show exScore ++ " colour(s) in the correct position")
+      putStrLn (show loScore ++ " colour(s) in the incorrect position")
+      if (tries - 1) == 0
+        then do
+          putStrLn "Ran out of tries"
+          putStr ("The correct answer was " ++ colString code)
+        else newPlayGame (tries - 1) code
 
 main :: IO ()
 main = do
-  putStrLn "IMPLEMENT ME"
+  code <- getCode 4
+  newPlayGame 12 code
